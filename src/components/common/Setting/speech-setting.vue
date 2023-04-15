@@ -23,7 +23,7 @@ const soundOptions = computed(() => {
 })
 
 watchEffect(() => {
-  const langOption = usedVoices.value.find((item: { lang: string }) => item.lang === formData.value.lang) || { voices: [], source: {} as VoiceDataType['source'] }
+  const langOption = (usedVoices.value && usedVoices.value.find((item: { lang: string }) => item.lang === formData.value.lang)) || { voices: [], source: {} as VoiceDataType['source'] }
 
   let sound = formData.value.sound || ''
   if (speechStore.speechSetting.lang !== formData.value.lang) {

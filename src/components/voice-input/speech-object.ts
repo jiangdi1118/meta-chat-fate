@@ -77,8 +77,8 @@ let speechObj: SpeechObjectType
 
 export const useSpeechObject = () => {
   // 如果 cachedResult 已经设置了值，直接返回它。
-  if (cachedResult.value)
-    return cachedResult.value
+  // if (cachedResult.value)
+  //   return cachedResult.value
 
   const isInit = ref(false)
   const isReady = ref(false)

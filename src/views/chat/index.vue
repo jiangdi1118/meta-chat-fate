@@ -64,7 +64,7 @@ async function handleSubmit() {
 
 // 组装上下文数据
 function contextualAssemblyData() {
-  const conversation = []
+  const conversation: { role: any; content: any }[] = []
 
   if (!usingContext.value) {
     const lastChat = dataSources.value.slice(-1)[0]
@@ -89,7 +89,24 @@ function contextualAssemblyData() {
       conversation.push(ai)
     }
   }
+  // 计算上下文字符数
+  const getContextLength = () => {
+    return conversation.reduce((acc, msg) => acc + msg.content.length, 0)
+  }
 
+  // 如果上下文字符数超过 4096，删除最开始的一组对话
+  while (getContextLength() > 4096) {
+    // 寻找第一个用户对话
+    const userIndex = conversation.findIndex(msg => msg.role === 'user')
+    if (userIndex === -1) {
+      // 如果找不到用户对话，直接删除第一条对话
+      conversation.shift()
+    }
+    else {
+      // 删除找到的用户对话以及之前的所有对话
+      conversation.splice(0, userIndex + 1)
+    }
+  }
   return conversation
 }
 
@@ -185,8 +202,23 @@ async function onConversation() {
 
             scrollToBottomIfAtBottom()
           }
-          catch (error) {
-            console.error('Error occurred during onDownloadProgress:', error)
+          catch (error: any) {
+            // 异常发生时，更新对话框内容并输出异常消息
+            updateChat(
+              +uuid,
+              dataSources.value.length - 1,
+              {
+                dateTime: new Date().toLocaleString(),
+                text: `错误：${error.message || '发生了未知错误'}`,
+                inversion: false,
+                error: true,
+                loading: false,
+                conversationOptions: {},
+                requestOptions: { prompt: message, options: { ...options } },
+              },
+            )
+            scrollToBottomIfAtBottom()
+            console.error('Error occurred during fetchChatAPIOnce:', error)
           }
         },
       })

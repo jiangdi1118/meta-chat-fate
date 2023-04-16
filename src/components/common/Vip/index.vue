@@ -7,6 +7,7 @@ import { orderCreate, orderSubmit, queryOrderInfo } from '@/api/pay'
 import { getSpuList } from '@/api/user'
 import { generateShortUrl } from '@/api/dwz'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
+import { useChatStore } from '@/store'
 
 const props = defineProps<{
   visible: boolean
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 }>()
 
 const message = useMessage()
+const chatStore = useChatStore()
 const selectedPaymentMethod = ref('')
 const qrcodeUrl = ref('')
 const spuInfo: Ref<any> = ref(null)
@@ -133,6 +135,8 @@ async function startPolling(orderId: number) {
       clearInterval(pollingTimer.value) // 清除轮询器
       message.success('支付成功！')
       handleClose()
+      // 更新 remainingMessages
+      await chatStore.updateRemainingMessages()
     }
   }, 2000) // 轮询间隔为 2000 毫秒（2 秒）
 }

@@ -95,7 +95,7 @@ function contextualAssemblyData() {
   }
 
   // 如果上下文字符数超过 4096，删除最开始的一组对话
-  while (getContextLength() > 4096) {
+  while (getContextLength() > 2096) {
     // 寻找第一个用户对话
     const userIndex = conversation.findIndex(msg => msg.role === 'user')
     if (userIndex === -1) {

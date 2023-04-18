@@ -29,7 +29,7 @@ const selectedSpuName = ref('')
 
 async function fetchSpuInfo() {
   try {
-    const data = null
+    const data = { status: 0 }
     const response = await getSpuList(data)
     if (response && response.code === 0 && Array.isArray(response.data) && response.data.length > 0) {
       spuInfo.value = response.data.map((item: any) => {

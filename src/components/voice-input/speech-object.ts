@@ -75,10 +75,14 @@ interface SpeechObjectType {
 }
 let speechObj: SpeechObjectType
 
+let updateVoices: () => void
+
 export const useSpeechObject = () => {
   // 如果 cachedResult 已经设置了值，直接返回它。
-  // if (cachedResult.value)
-  //   return cachedResult.value
+  if (cachedResult.value)
+    return cachedResult.value
+
+  let isUpdatingVoices = false
 
   const isInit = ref(false)
   const isReady = ref(false)
@@ -143,31 +147,33 @@ export const useSpeechObject = () => {
 
     return new Promise(resolve => checkFn(() => resolve(true)))
   }
-  let isUpdatingVoices = false
 
-  const updateVoices = debounce(() => {
-    if (isVoicesUpdated.value || isUpdatingVoices)
-      return
+  // 如果 updateVoices 尚未定义，为其分配 debounce 函数
+  if (!updateVoices) {
+    updateVoices = debounce(() => {
+      if (isVoicesUpdated.value || isUpdatingVoices)
+        return
 
-    isUpdatingVoices = true
+      isUpdatingVoices = true
 
-    if (speechObj.speechSynthesis) {
-      const voices = speechObj.speechSynthesis.getVoices() || []
-      if (voices.length) {
-        allVoices.value = voices
-        isVoicesUpdated.value = true
-        isReady.value = true
-      }
-      else {
-        speechObj.speechSynthesis.onvoiceschanged = () => {
-          allVoices.value = speechObj.speechSynthesis?.getVoices() || []
+      if (speechObj.speechSynthesis) {
+        const voices = speechObj.speechSynthesis.getVoices() || []
+        if (voices.length) {
+          allVoices.value = voices
           isVoicesUpdated.value = true
           isReady.value = true
         }
+        else {
+          speechObj.speechSynthesis.onvoiceschanged = () => {
+            allVoices.value = speechObj.speechSynthesis?.getVoices() || []
+            isVoicesUpdated.value = true
+            isReady.value = true
+          }
+        }
       }
-    }
-    isUpdatingVoices = false
-  }, 2000) // 设置防抖时间为 1000 毫秒
+      isUpdatingVoices = false
+    }, 1000) // 设置防抖时间为 1000 毫秒
+  }
 
   async function getSpeechObject(): Promise<SpeechObjectType> {
     if (!getToken().loaded) {
@@ -242,7 +248,7 @@ export const useSpeechObject = () => {
   )
 
   watch([() => usedVoices.value.length, () => isInit.value], updateUsedVoices)
-  // debouncedUseSpeechObject = debounce(getSpeechObject, 10000)
+  // const debouncedUseSpeechObject = debounce(getSpeechObject, 10000)
 
   // auto init
   getSpeechObject()

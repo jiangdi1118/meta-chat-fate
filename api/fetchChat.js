@@ -15,9 +15,11 @@ async function handler(req, res) {
     })
 
     res.status(response.status)
-    for (const [key, value] of response.headers.entries())
-      res.setHeader(key, value)
-
+    for (const [key, value] of response.headers.entries()) {
+      // 过滤掉 Content-Length 头
+      if (key.toLowerCase() !== 'content-length')
+        res.setHeader(key, value)
+    }
     response.body.pipe(res)
   }
   catch (error) {

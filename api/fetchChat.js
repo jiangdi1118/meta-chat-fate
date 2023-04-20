@@ -1,54 +1,15 @@
-// export default async (req, res) => {
-//   const apiUrl = 'https://api.openai.com/v1/chat/completions'
-
-//   const requestBody = req.body
-//   const apiKey = process.env.VITE_GLOB_OPENAI_API_KEY
-
-//   const response = await fetch(apiUrl, {
-//     method: 'POST',
-//     body: JSON.stringify(requestBody),
-//     headers: {
-//       'Authorization': `Bearer ${apiKey}`,
-//       'Content-Type': 'application/json',
-//       'Accept': 'application/json',
-//     },
-//   })
-
-//   // 将响应的状态和头部信息发送回客户端
-//   res.status(response.status)
-//   for (const [key, value] of response.headers)
-//     res.setHeader(key, value)
-
-//   // 将响应的流式传输内容发送回客户端
-//   const reader = response.body.getReader()
-//   res.writeProcessing()
-
-//   const readStream = async (reader) => {
-//     while (true) {
-//       const { done, value } = await reader.read()
-//       if (done)
-//         break
-
-//       res.write(value)
-//     }
-//     res.end()
-//   }
-
-//   await readStream(reader)
-// }
-
 module.exports = async (req, res) => {
-  const apiKey = process.env.VITE_GLOB_OPENAI_API_KEY
   const apiUrl = 'https://api.openai.com/v1/chat/completions'
+  const apiKey = process.env.OPENAI_API_KEY // 从环境变量中获取 API 密钥
 
   try {
     const response = await fetch(apiUrl, {
       method: req.method,
       headers: {
         ...req.headers,
-        Authorization: `Bearer ${apiKey}`,
+        authorization: `Bearer ${apiKey}`,
       },
-      body: req.method === 'POST' ? await req.text() : null,
+      body: req.method === 'POST' ? await getRequestBody(req) : null, // 从请求中获取主体
     })
 
     res.status(response.status)
@@ -87,5 +48,24 @@ module.exports = async (req, res) => {
   catch (error) {
     console.error('Error in openai_proxy:', error)
     res.status(500).send('An error occurred while processing the request.')
+  }
+}
+
+// 从请求中获取主体
+async function getRequestBody(req) {
+  if (req.method === 'GET') {
+    console.error('Error in openai_proxy: req.method = GET')
+    return null
+  }
+  else if (typeof req.readable === 'function') { // 如果请求是一个流式请求
+    const chunks = []
+    return new Promise((resolve, reject) => {
+      req.on('data', chunk => chunks.push(chunk))
+      req.on('end', () => resolve(Buffer.concat(chunks).toString()))
+      req.on('error', err => reject(err))
+    })
+  }
+  else { // 如果请求是一个普通的 JavaScript 对象
+    return JSON.stringify(req.body)
   }
 }

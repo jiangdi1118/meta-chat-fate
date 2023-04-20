@@ -80,7 +80,7 @@ export async function fetchChatAPIProcess<T = any>(
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          signal: params.signal,
+          // signal: params.signal,
         },
       )
     }
@@ -103,7 +103,7 @@ export async function fetchChatAPIProcess<T = any>(
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          signal: params.signal,
+          // signal: params.signal,
         },
       )
     }

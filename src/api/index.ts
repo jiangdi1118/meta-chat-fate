@@ -182,6 +182,11 @@ export async function fetchChatAPIProcess<T = any>(
       await readStream(reader)
       return response
     }
+    else {
+      // 当 onDownloadProgress 未定义时，直接返回 JSON 响应
+      const jsonResponse = await response.json()
+      return jsonResponse
+    }
   }
   catch (error: any) {
     // 捕获到异常，通过 onDownloadProgress 回调返回异常消息

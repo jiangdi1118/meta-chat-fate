@@ -14,7 +14,11 @@ async function handler(req, res) {
       },
     })
 
-    res.status(200).json(response)
+    res.status(response.status)
+    for (const [key, value] of response.headers.entries())
+      res.setHeader(key, value)
+
+    response.body.pipe(res)
   }
   catch (error) {
     console.error('Error while processing request:', error)

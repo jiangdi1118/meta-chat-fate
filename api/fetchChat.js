@@ -2,7 +2,7 @@ export default async (req, res) => {
   const apiUrl = 'https://api.openai.com/v1/chat/completions'
 
   const requestBody = req.body
-  const apiKey = process.env.OPENAI_API_KEY
+  const apiKey = process.env.VITE_GLOB_OPENAI_API_KEY
 
   const response = await fetch(apiUrl, {
     method: 'POST',

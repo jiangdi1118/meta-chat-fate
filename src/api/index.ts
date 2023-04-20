@@ -1,5 +1,5 @@
 import type { AxiosProgressEvent } from 'axios'
-import axios from 'axios'
+// import axios from 'axios'
 import { post } from '@/utils/request'
 
 export function fetchChatConfig<T = any>() {
@@ -8,37 +8,37 @@ export function fetchChatConfig<T = any>() {
   })
 }
 
-async function fetchImageGeneration(prompt: any, n: any, size: any) {
-  const OPENAI_API_KEY = import.meta.env.VITE_GLOB_OPENAI_API_KEY
-  try {
-    const response = await axios.post(
-      'https://api.openai.com/v1/images/generations',
-      {
-        prompt,
-        n,
-        size,
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    )
+// async function fetchImageGeneration(prompt: any, n: any, size: any) {
+//   const OPENAI_API_KEY = import.meta.env.VITE_GLOB_OPENAI_API_KEY
+//   try {
+//     const response = await axios.post(
+//       'https://api.openai.com/v1/images/generations',
+//       {
+//         prompt,
+//         n,
+//         size,
+//       },
+//       {
+//         headers: {
+//           'Authorization': `Bearer ${OPENAI_API_KEY}`,
+//           'Content-Type': 'application/json',
+//         },
+//       },
+//     )
 
-    if (response.status === 200) {
-      const data = response.data
-      console.log('成功获取数据：', data)
-      return data
-    }
-    else {
-      throw new Error('请求失败')
-    }
-  }
-  catch (error) {
-    console.error('发生错误：', error)
-  }
-}
+//     if (response.status === 200) {
+//       const data = response.data
+//       console.log('成功获取数据：', data)
+//       return data
+//     }
+//     else {
+//       throw new Error('请求失败')
+//     }
+//   }
+//   catch (error) {
+//     console.error('发生错误：', error)
+//   }
+// }
 
 export async function fetchChatAPIProcess<T = any>(
   params: {

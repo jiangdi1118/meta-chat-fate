@@ -80,7 +80,7 @@ export async function fetchChatAPIProcess<T = any>(
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          signal: params.signal,
+          mode: 'cors',
         },
       )
     }

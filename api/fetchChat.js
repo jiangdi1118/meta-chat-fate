@@ -1,31 +1,40 @@
-async function handler(req, res) {
-  const apiKey = process.env.VITE_GLOB_OPENAI_API_KEY
+import fetch from 'node-fetch'
+
+export default async (req, res) => {
   const apiUrl = 'https://api.openai.com/v1/chat/completions'
 
-  try {
-    const requestBody = req.body
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    })
+  const requestBody = req.body
+  const apiKey = process.env.OPENAI_API_KEY
 
-    res.status(response.status)
-    for (const [key, value] of response.headers.entries()) {
-      // 过滤掉 Content-Length 头
-      if (key.toLowerCase() !== 'content-length')
-        res.setHeader(key, value)
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    body: JSON.stringify(requestBody),
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  })
+
+  // 将响应的状态和头部信息发送回客户端
+  res.status(response.status)
+  for (const [key, value] of response.headers)
+    res.setHeader(key, value)
+
+  // 将响应的流式传输内容发送回客户端
+  const reader = response.body.getReader()
+  res.writeProcessing()
+
+  const readStream = async (reader) => {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done)
+        break
+
+      res.write(value)
     }
-    response.body.pipe(res)
+    res.end()
   }
-  catch (error) {
-    console.error('Error while processing request:', error)
-    res.status(500).json({ error: 'An error occurred while processing the request.' })
-  }
-}
 
-module.exports = handler
+  await readStream(reader)
+}

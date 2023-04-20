@@ -1,7 +1,4 @@
-// Content-Type: application/typescript
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req, res) {
   const apiKey = process.env.VITE_GLOB_OPENAI_API_KEY
   const apiUrl = 'https://api.openai.com/v1/chat/completions'
 
@@ -32,3 +29,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).json({ error: 'An error occurred while processing the request.' })
   }
 }
+
+module.exports = handler

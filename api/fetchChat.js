@@ -14,15 +14,7 @@ async function handler(req, res) {
       },
     })
 
-    if (!response.ok) {
-      const errorResponse = await response.json()
-      const errorMessage = errorResponse.error?.message || 'An unknown error occurred.'
-      res.status(response.status).json({ error: errorMessage })
-      return
-    }
-
-    const responseData = await response.json()
-    res.status(200).json(responseData)
+    res.status(200).json(response)
   }
   catch (error) {
     console.error('Error while processing request:', error)

@@ -1,5 +1,4 @@
 import type { AxiosProgressEvent } from 'axios'
-// import axios from 'axios'
 import { post } from '@/utils/request'
 
 export function fetchChatConfig<T = any>() {
@@ -7,38 +6,6 @@ export function fetchChatConfig<T = any>() {
     url: '/gpt/config',
   })
 }
-
-// async function fetchImageGeneration(prompt: any, n: any, size: any) {
-//   const OPENAI_API_KEY = import.meta.env.VITE_GLOB_OPENAI_API_KEY
-//   try {
-//     const response = await axios.post(
-//       'https://api.openai.com/v1/images/generations',
-//       {
-//         prompt,
-//         n,
-//         size,
-//       },
-//       {
-//         headers: {
-//           'Authorization': `Bearer ${OPENAI_API_KEY}`,
-//           'Content-Type': 'application/json',
-//         },
-//       },
-//     )
-
-//     if (response.status === 200) {
-//       const data = response.data
-//       console.log('成功获取数据：', data)
-//       return data
-//     }
-//     else {
-//       throw new Error('请求失败')
-//     }
-//   }
-//   catch (error) {
-//     console.error('发生错误：', error)
-//   }
-// }
 
 export async function fetchChatAPIProcess<T = any>(
   params: {
@@ -57,56 +24,28 @@ export async function fetchChatAPIProcess<T = any>(
     model: import.meta.env.VITE_GLOB_API_MODEL,
     baseUrl: import.meta.env.VITE_GLOB_OPENAI_API_URL,
   }
-  let apiUrl
 
   try {
-    let response
-
-    if (!base.baseUrl) {
-      apiUrl = '/api/fetchChat'
-      response = await fetch(
-        '/api/fetchChat', {
-          method: 'POST',
-          body: JSON.stringify({
-            max_tokens: 1000,
-            model: base.model,
-            temperature: 0.8,
-            top_p: 1,
-            presence_penalty: 1,
-            messages: params.myProp,
-            stream: params.stream,
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          mode: 'cors',
+    const response = await fetch(
+      `${base.baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        body: JSON.stringify({
+          max_tokens: 1000,
+          model: base.model,
+          temperature: 0.8,
+          top_p: 1,
+          presence_penalty: 1,
+          messages: params.myProp,
+          stream: params.stream,
+        }),
+        headers: {
+          'Authorization': `Bearer ${base.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-      )
-    }
-    else {
-      apiUrl = 'https://api.openai.com/v1/chat/completions'
-      response = await fetch(
-        apiUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            max_tokens: 1000,
-            model: base.model,
-            temperature: 0.8,
-            top_p: 1,
-            presence_penalty: 1,
-            messages: params.myProp,
-            stream: params.stream,
-          }),
-          headers: {
-            'Authorization': `Bearer ${base.apiKey}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          signal: params.signal,
-        },
-      )
-    }
+        signal: params.signal,
+      },
+    )
 
     if (!response.ok) {
       // 检查响应状态，如果不是 200 OK，解析错误消息并通过 onDownloadProgress 回调返回
@@ -181,11 +120,6 @@ export async function fetchChatAPIProcess<T = any>(
 
       await readStream(reader)
       return response
-    }
-    else {
-      // 当 onDownloadProgress 未定义时，直接返回 JSON 响应
-      const jsonResponse = await response.json()
-      return jsonResponse
     }
   }
   catch (error: any) {

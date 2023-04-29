@@ -21,7 +21,7 @@ const formInline = reactive({
 const rules = {
   mobile: [
     { required: true, message: '请输入手机号码', trigger: 'blur' },
-    // { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' },
+    { pattern: /^1\d{10}$/, message: '请输入正确的手机号码', trigger: 'blur' },
   ],
   code: { required: true, message: '请输入验证码', trigger: 'blur' },
 }

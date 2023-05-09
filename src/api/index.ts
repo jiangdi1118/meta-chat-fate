@@ -1,6 +1,5 @@
 import type { AxiosProgressEvent } from 'axios'
 import { post } from '@/utils/request'
-import { useAuthStore } from '@/store'
 
 export function fetchChatConfig<T = any>() {
   return post<T>({
@@ -21,108 +20,106 @@ export async function fetchChatAPIProcess<T = any>(
   },
 ) {
   const base = {
+    apiKey: import.meta.env.VITE_GLOB_OPENAI_API_KEY,
     model: import.meta.env.VITE_GLOB_API_MODEL,
-    baseUrl: import.meta.env.VITE_GLOB_API_URL,
+    baseUrl: import.meta.env.VITE_GLOB_OPENAI_API_URL,
   }
 
   try {
-    const token = useAuthStore().token || ''
-    const url = `${base.baseUrl}/gpt/index/chat/sse`
-    const data = {
-      method: 'POST',
-      body: JSON.stringify({
-        model: base.model,
-        messages: params.myProp,
-        prompt: params.prompt,
-      }),
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'tenant-id': import.meta.env.VITE_GLOB_TENANT_ID,
-      },
-      signal: params.signal,
-    }
-
     const response = await fetch(
-      url, data,
+      `${base.baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        body: JSON.stringify({
+          max_tokens: 1000,
+          model: base.model,
+          temperature: 0.8,
+          top_p: 1,
+          presence_penalty: 1,
+          messages: params.myProp,
+          stream: params.stream,
+        }),
+        headers: {
+          'Authorization': `Bearer ${base.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        signal: params.signal,
+      },
     )
 
     if (!response.ok) {
       // 检查响应状态，如果不是 200 OK，解析错误消息并通过 onDownloadProgress 回调返回
       const errorResponse = await response.json()
       const errorMessage = errorResponse.error?.message || '发生了未知错误'
-      throw new Error(errorMessage)
+      const progressEvent = {
+        id: null,
+        text: `错误：${errorMessage}`,
+        role: 'assistant',
+        conversationId: undefined,
+        error: true,
+        isError: true,
+      }
+      params.onDownloadProgress?.({ event: progressEvent } as AxiosProgressEvent)
+      return
     }
 
     if (params.onDownloadProgress) {
-      if (response.headers.get('Content-Type')?.startsWith('text/event-stream')) {
-        const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
-          let partialData = ''
-          let jsonMessage = ''
+      const reader = response.body!.getReader()
 
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done)
-              break
+      const readStream = async (reader: any) => {
+        let partialData = ''
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done)
+            break
 
-            partialData += new TextDecoder('utf-8').decode(value)
-            if (partialData === 'data:[DONE]')
+          partialData += new TextDecoder('utf-8').decode(value)
+          const lines = partialData.split('data: ')
+
+          for (let i = 0; i < lines.length - 1; i++) {
+            const line = lines[i].trim()
+            if (line === '[DONE]') {
               return
+            }
+            else if (line !== '') {
+              // 将解析后的JSON对象赋值给data变量
+              const data = JSON.parse(line)
 
-            for (let i = 0; i < partialData.length; i++) {
-              const char = partialData[i]
-
-              if (char === '{')
-                jsonMessage = ''
-
-              jsonMessage += char
-
-              if (char === '}') {
-                try {
-                  const data = JSON.parse(jsonMessage)
-
-                  // 检查 data.error 是否存在
-                  if (data.error) {
-                    // 通过 onDownloadProgress 回调返回错误消息
-                    const errorMessage = data.error.message || '发生了未知错误'
-                    const progressEvent = {
-                      id: null,
-                      text: `错误：${errorMessage}`,
-                      role: 'assistant',
-                      conversationId: undefined,
-                      error: true,
-                    }
-                    params.onDownloadProgress?.({ event: progressEvent } as AxiosProgressEvent)
-                    return
-                  }
-
-                  // 对SSE消息进行处理
+              // 检查 data.error 是否存在
+              if (data.error) {
+                // 通过 onDownloadProgress 回调返回错误消息
+                const errorMessage = data.error.message || '发生了未知错误'
+                const progressEvent = {
+                  id: null,
+                  text: `错误：${errorMessage}`,
+                  role: 'assistant',
+                  conversationId: undefined,
+                  error: true,
+                }
+                params.onDownloadProgress?.({ event: progressEvent } as AxiosProgressEvent)
+              }
+              // 检查 data.choices[0].delta 是否存在，以及 content 字段是否存在
+              // eslint-disable-next-line no-prototype-builtins
+              else if (data.choices && data.choices[0].delta && data.choices[0].delta.hasOwnProperty('content')) {
+                const content = data.choices[0].delta.content || ''
+                if (content) {
                   const progressEvent = {
                     id: data.id,
-                    text: data.message,
+                    text: content,
                     role: 'assistant',
                     conversationId: undefined,
                   }
                   params.onDownloadProgress?.({ event: progressEvent } as AxiosProgressEvent)
                 }
-                catch (e) {
-                  // console.error('JSON解析错误：', e)
-                }
               }
             }
-
-            partialData = ''
           }
+          partialData = lines[lines.length - 1]
         }
+      }
 
-        await readStream(response.body!.getReader())
-      }
-      else {
-        const errorResponse = await response.json()
-        const errorMessage = (errorResponse.msg || errorResponse.error?.message) || '发生了未知错误'
-        throw new Error(errorMessage)
-      }
+      await readStream(reader)
+      return response
     }
   }
   catch (error: any) {

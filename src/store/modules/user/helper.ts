@@ -16,10 +16,15 @@ export interface UserState {
 export function defaultSetting(): UserState {
   return {
     userInfo: {
-      avatar: 'https://raw.githubusercontent.com/Chanzhaoyu/chatgpt-web/main/src/assets/avatar.jpg',
-      nickname: '三生宇宙',
-      description: '欢迎来到AI的世界',
-      mobile: '176****5959',
+      avatar: '',
+      nickname: '',
+      description: '',
+      mobile: '',
+
+      // avatar: 'https://raw.githubusercontent.com/Chanzhaoyu/chatgpt-web/main/src/assets/avatar.jpg',
+      // nickname: '三生宇宙',
+      // description: '欢迎来到AI的世界',
+      // mobile: '176****5959',
     },
   }
 }

@@ -3,6 +3,7 @@ import type { Ref } from 'vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { NButton, NCard, NModal, NSpace, useMessage } from 'naive-ui'
 import QRCode from 'qrcode.vue'
+import { LogoAlipay, LogoWechat } from '@vicons/ionicons5'
 import { orderCreate, orderSubmit, queryOrderInfo } from '@/api/pay'
 import { getSpuList } from '@/api/user'
 import { generateShortUrl } from '@/api/dwz'
@@ -170,12 +171,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NModal v-model:show="show" preset="card" style="width: 95%; max-width: 650px" @update:show="handleClose">
-    <NSpace v-if="!qrcodeUrl" class="card-container">
+  <NModal v-model:show="show" title="会员充值" preset="card" style="width: 95%; max-width: 650px" @update:show="handleClose">
+    <NSpace v-if="!qrcodeUrl" class="flex card-container">
       <NCard
         v-for="(spu) in spuInfo"
         :key="spu.id"
-        class="mr-10"
+        class="mr-5"
       >
         <template #header>
           <div class="text-2xl">
@@ -183,7 +184,8 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <div class="text-lg mb-4">
-          价格: ¥{{ spu.price / 100 }}
+          <label>价格: </label>
+          <span>¥{{ spu.price / 100 }}</span>
         </div>
         <ul class="list-disc list-inside mb-4 ul-min-height">
           <li v-for="(infoItem, infoIndex) in spu.info" :key="infoIndex">
@@ -193,12 +195,18 @@ onBeforeUnmount(() => {
         <div class="payment-buttons">
           <NButton
             class="mb-2"
-            type="primary"
+            type="info"
             @click="purchase(spu.id, 'alipay')"
           >
+            <n-icon class="mr-1">
+              <LogoAlipay />
+            </n-icon>
             支付宝支付
           </NButton>
           <NButton type="primary" @click="purchase(spu.id, 'wechat')">
+            <n-icon class="mr-1">
+              <LogoWechat />
+            </n-icon>
             微信支付
           </NButton>
         </div>
@@ -219,7 +227,7 @@ onBeforeUnmount(() => {
   </NModal>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .card-container {
   display: flex;
   flex-wrap: wrap;
@@ -245,5 +253,12 @@ onBeforeUnmount(() => {
 .payment-tip {
   margin: 0.5rem 0;
   font-weight: bold;
+}
+.text-lg{
+>span{
+color: #ff9f00;
+font-size: 30px;
+font-weight: bold;
+}
 }
 </style>

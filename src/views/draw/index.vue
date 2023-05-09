@@ -513,7 +513,7 @@ const handleVoiceSubmit = () => {
 }
 
 // 热问词
-const hotList = reactive(['帮大学老师写一篇论文', '一根香蕉的热量是？', '为西游记写一个番外故事', '讲一下黑暗森林法则', '巴西足球为什么这么厉害', '推荐几本经济学数据'])
+const hotList = reactive(['画一个嫦娥', '画一个貂蝉', '画一个西施', '画一个苹果', '画一个香蕉', '画一个橘子'])
 const handleHotWord = (item: string) => {
   prompt.value = item
   handleSubmit()
@@ -549,7 +549,7 @@ onUnmounted(() => {
         >
           <template v-if="!dataSources.length">
             <div class="flex mt-4 mb-2 items-center justify-center">
-              <h2>您可以这样提问？</h2>
+              <h2>您可以这样提问绘图？</h2>
               <SvgIcon icon="ri:refresh" />
             </div>
             <div class="hot-content">

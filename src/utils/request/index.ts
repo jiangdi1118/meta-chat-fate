@@ -1,4 +1,5 @@
 import type { AxiosProgressEvent, AxiosResponse, GenericAbortSignal } from 'axios'
+import { router } from '../../router/index'
 import request from './axios'
 import { useAuthStore } from '@/store'
 
@@ -33,8 +34,22 @@ function http<T = any>(
 
     if (res.data.status === 'Unauthorized' || res?.data?.code === 401) {
       authStore.removeToken()
-      window.location.reload()
+      window.$dialog.warning({
+        title: '提示',
+        content: '您尚未登录，是否前往登录？',
+        positiveText: '是',
+        negativeText: '否',
+        onPositiveClick: () => {
+          router.push('/login')
+          // message.success('确定')
+        },
+        onNegativeClick: () => {
+          // message.error('不确定')
+        },
+      })
     }
+    // debugger
+    // window.location.reload()
 
     return Promise.reject(res.data)
   }

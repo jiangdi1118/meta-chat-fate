@@ -1,3 +1,3 @@
-import ChatLayout from './Layout.vue'
+import DrawLayout from './Layout.vue'
 
-export { ChatLayout }
+export { DrawLayout }

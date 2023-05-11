@@ -8,18 +8,18 @@ import html2canvas from 'html2canvas'
 import { Message } from './components'
 import { useScroll } from './hooks/useScroll'
 import { useChat } from './hooks/useChat'
-import { useCopyCode } from './hooks/useCopyCode'
 import { useUsingContext } from './hooks/useUsingContext'
 import HeaderComponent from './components/Header/index.vue'
 import { SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
-import { useChatStore, usePromptStore, useSettingStore } from '@/store'
-import { fetchChatAPIProcess } from '@/api'
+import { useDrawStore, usePromptStore, useSettingStore } from '@/store'
+// import { fetchChatAPIProcess } from '@/api'
 import { t } from '@/locales'
 import VoiceInput from '@/components/voice-input/index.vue'
 import AutoSpeak from '@/components/voice-output/auto-speak.vue'
 import { useSpeechStore } from '@/store/modules/speech'
 import { checkChat } from '@/api/user'
+import { getTaskInfo, submit } from '@/api/draw'
 
 let controller = new AbortController()
 
@@ -27,10 +27,10 @@ const route = useRoute()
 const dialog = useDialog()
 const ms = useMessage()
 
-const chatStore = useChatStore()
+const chatStore = useDrawStore()
 const speechStore = useSpeechStore()
 
-useCopyCode()
+// useCopyCode()
 
 const { isMobile } = useBasicLayout()
 const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
@@ -45,6 +45,7 @@ const conversationList = computed(() => dataSources.value.filter(item => (!item.
 const prompt = ref<string>('')
 const loading = ref<boolean>(false)
 const inputRef = ref<Ref | null>(null)
+let timer = null
 
 // 添加PromptStore
 const promptStore = usePromptStore()
@@ -110,6 +111,35 @@ function contextualAssemblyData() {
   return conversation
 }
 
+// 查询绘图结果
+const queryTaskInfo = (res) => {
+  timer = setInterval(() => {
+    getTaskInfo(res.result).then((resp) => {
+      if (resp.status === 'SUCCESS') {
+      }
+      else if (resp.status === 'IN_PROGRESS') {
+      }
+      else if (resp.status === 'FAILURE') {
+        // 异常发生时，更新对话框内容并输出异常消息
+        updateChat(
+          +uuid,
+          dataSources.value.length - 1,
+          {
+            dateTime: new Date().toLocaleString(),
+            text: `错误：${resp.message || '发生了未知错误'}`,
+            inversion: false,
+            error: true,
+            loading: false,
+            conversationOptions: {},
+            requestOptions: { prompt: prompt.value, options: null },
+          },
+        )
+        scrollToBottomIfAtBottom()
+      }
+    })
+  }, 1000)
+}
+
 async function onConversation() {
   // 提问时首先判断是否具有权限
   const response = await checkChat()
@@ -170,65 +200,15 @@ async function onConversation() {
     },
   )
   scrollToBottom()
-
-  try {
-    let lastText = ''
-
-    const fetchChatAPIOnce = async () => {
-      await fetchChatAPIProcess<Chat.ConversationResponse>({
-        prompt: message,
-        options,
-        myProp,
-        model: '',
-        stream: true,
-        signal: controller.signal,
-        onDownloadProgress: ({ event }) => {
-          try {
-            const data = event
-            lastText = lastText + data.text ?? ''
-            updateChat(
-              +uuid,
-              dataSources.value.length - 1,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: lastText,
-                inversion: false,
-                error: false,
-                loading: false,
-                conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
-                requestOptions: { prompt: message, options: { ...options } },
-              },
-            )
-
-            scrollToBottomIfAtBottom()
-          }
-          catch (error: any) {
-            // 异常发生时，更新对话框内容并输出异常消息
-            updateChat(
-              +uuid,
-              dataSources.value.length - 1,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: `错误：${error.message || '发生了未知错误'}`,
-                inversion: false,
-                error: true,
-                loading: false,
-                conversationOptions: {},
-                requestOptions: { prompt: message, options: { ...options } },
-              },
-            )
-            scrollToBottomIfAtBottom()
-            console.error('Error occurred during fetchChatAPIOnce:', error)
-          }
-        },
-      })
-    }
-
-    await fetchChatAPIOnce()
-  }
-  catch (error: any) {
+  // 提交数据
+  submit({
+    action: 'IMAGINE',
+    prompt: message,
+    state: 'test:23',
+  }).then((res) => {
+    queryTaskInfo(res)
+  }).catch((error: any) => {
     const errorMessage = error?.message ?? t('common.wrong')
-
     if (error.message === 'canceled') {
       updateChatSome(
         +uuid,
@@ -240,9 +220,7 @@ async function onConversation() {
       scrollToBottomIfAtBottom()
       return
     }
-
     const currentChat = getChatByUuidAndIndex(+uuid, dataSources.value.length - 1)
-
     if (currentChat?.text && currentChat.text !== '') {
       updateChatSome(
         +uuid,
@@ -255,7 +233,6 @@ async function onConversation() {
       )
       return
     }
-
     updateChat(
       +uuid,
       dataSources.value.length - 1,
@@ -270,10 +247,9 @@ async function onConversation() {
       },
     )
     scrollToBottomIfAtBottom()
-  }
-  finally {
+  }).finally(() => {
     loading.value = false
-  }
+  })
 }
 
 async function onRegenerate(index: number) {
@@ -309,45 +285,14 @@ async function onRegenerate(index: number) {
     },
   )
 
-  try {
-    let lastText = ''
-    const fetchChatAPIOnce = async () => {
-      await fetchChatAPIProcess<Chat.ConversationResponse>({
-        prompt: message,
-        options,
-        myProp,
-        model: '',
-        stream: true,
-        signal: controller.signal,
-        onDownloadProgress: ({ event }) => {
-          try {
-            const data = event
-            lastText = lastText + data.text ?? ''
-
-            updateChat(
-              +uuid,
-              index,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: lastText,
-                inversion: false,
-                error: false,
-                loading: false,
-                conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
-                requestOptions: { prompt: message, ...options },
-              },
-            )
-          }
-          catch (error) {
-            console.error('Error occurred during onDownloadProgress:', error)
-          }
-        },
-      })
-    }
-
-    await fetchChatAPIOnce()
-  }
-  catch (error: any) {
+  // 提交数据
+  submit({
+    action: 'IMAGINE',
+    prompt: message,
+    state: 'test:23',
+  }).then((res) => {
+    queryTaskInfo(res)
+  }).catch((error) => {
     if (error.message === 'canceled') {
       updateChatSome(
         +uuid,
@@ -358,9 +303,7 @@ async function onRegenerate(index: number) {
       )
       return
     }
-
     const errorMessage = error?.message ?? t('common.wrong')
-
     updateChat(
       +uuid,
       index,
@@ -374,10 +317,9 @@ async function onRegenerate(index: number) {
         requestOptions: { prompt: message, ...options },
       },
     )
-  }
-  finally {
+  }).finally(() => {
     loading.value = false
-  }
+  })
 }
 
 function handleExport() {

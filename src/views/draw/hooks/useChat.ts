@@ -1,7 +1,7 @@
-import { useChatStore } from '@/store'
+import { useDrawStore } from '@/store'
 
 export function useChat() {
-  const chatStore = useChatStore()
+  const chatStore = useDrawStore()
 
   const getChatByUuidAndIndex = (uuid: number, index: number) => {
     return chatStore.getChatByUuidAndIndex(uuid, index)

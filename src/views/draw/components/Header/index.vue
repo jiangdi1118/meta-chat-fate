@@ -2,7 +2,7 @@
 import { computed, nextTick, ref } from 'vue'
 import { useDialog } from 'naive-ui'
 import { HoverButton, SvgIcon } from '@/components/common'
-import { useAppStore, useChatStore } from '@/store'
+import { useAppStore, useDrawStore } from '@/store'
 import { t } from '@/locales'
 
 interface Props {
@@ -23,7 +23,7 @@ const showSetting = ref(false)
 const showVip = ref(false)
 
 const appStore = useAppStore()
-const chatStore = useChatStore()
+const chatStore = useDrawStore()
 
 const collapsed = computed(() => appStore.siderCollapsed)
 const currentChatHistory = computed(() => chatStore.getChatHistoryByCurrentActive)

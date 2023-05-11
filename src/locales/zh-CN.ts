@@ -29,6 +29,7 @@ export default {
     unauthorizedTips: '未经授权，请先进行验证。',
   },
   chat: {
+    newDrawButton: '新建绘图',
     newChatButton: '新建聊天',
     placeholder: '来说点什么吧...（Shift + Enter = 换行，"/" 触发提示词）',
     placeholderMobile: '来说点什么...',

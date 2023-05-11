@@ -4,14 +4,14 @@ import { NLayout, NLayoutContent } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import Sider from './sider/index.vue'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
-import { useAppStore } from '@/store'
+import { useAppStore, useDrawStore } from '@/store'
 
-// useAuthStore useChatStore
+// useAuthStore useDrawStore
 const router = useRouter()
 const appStore = useAppStore()
-// const chatStore = useChatStore()
+const chatStore = useDrawStore()
 // const authStore = useAuthStore()
-// router.replace({ name: 'Chat', params: { uuid: chatStore.active } })
+router.replace({ name: 'Draw', params: { uuid: chatStore.active } })
 
 const { isMobile } = useBasicLayout()
 const collapsed = computed(() => appStore.siderCollapsed)

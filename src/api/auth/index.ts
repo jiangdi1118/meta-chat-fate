@@ -27,3 +27,10 @@ export function logout(token: string) {
     data: { token },
   })
 }
+
+export function exchangeCode(cardCodes: string) {
+  return post({
+    url: '/gpt/index/card-codes',
+    data: { cardCodes },
+  })
+}

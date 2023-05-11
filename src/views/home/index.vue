@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // import type { Ref } from 'vue'
 // import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 // import { router } from '@/router'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Diamond, SettingsSharp } from '@vicons/ionicons5'
-import Layout from '../chat/layout/Layout.vue'
+import { ChatLayout } from '../chat/layout/index'
+import { DrawLayout } from '../draw/layout/index'
 import { useUserStore } from '@/store'
 import { websiteConfig } from '@/config/website.config'
 import Setting from '@/components/common/Setting/index.vue'
@@ -13,26 +14,29 @@ import Vip from '@/components/common/Vip/index.vue'
 
 // import { storeToRefs } from 'pinia'
 // import { NAutoComplete, NButton, NInput, useDialog, useMessage } from 'naive-ui'
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
 const showSetting = ref(false)
 const showVip = ref(false)
+const curTab = ref('')
 const navList = reactive([
   {
     name: '聊天',
     linkUrl: 'chat',
   },
-  {
-    name: '写作',
-    linkUrl: 'write',
-  },
+  // {
+  //   name: '写作',
+  //   linkUrl: 'write',
+  // },
   {
     name: '绘图',
     linkUrl: 'draw',
   },
 ])
 const change = (val: any) => {
+  curTab.value = val
   navList.forEach((item) => {
     if (item.name === val)
       router.push(`/${item.linkUrl}`)
@@ -41,13 +45,21 @@ const change = (val: any) => {
 const login = () => {
   router.push({ name: 'Login' })
 }
+
+watch(() => router.currentRoute.value.path, (newValue, oldValue) => {
+  navList.forEach((item) => {
+    if (newValue.includes(item.linkUrl))
+      curTab.value = item.name
+  })
+}, { immediate: true })
+
 onMounted(() => {
 })
 </script>
 
 <template>
   <div class="flex flex-col w-full h-full p-2">
-    <n-tabs :bar-width="28" type="line" justify-content="center" class="nav" @update:value="change">
+    <n-tabs :value="curTab" :bar-width="28" type="line" justify-content="center" class="nav" @update:value="change">
       <template #prefix>
         <img class="logo" :src="websiteConfig.logo" alt="">
       </template>
@@ -81,8 +93,9 @@ onMounted(() => {
       </template>
     </n-tabs>
     <div class="content">
-      <Layout />
-      <!-- <router-view /> -->
+      <ChatLayout v-if="route.path.indexOf('chat') !== -1" />
+      <DrawLayout v-if="route.path.indexOf('draw') !== -1" />
+      <!-- <Layout /> -->
     </div>
     <Setting v-if="showSetting" v-model:visible="showSetting" />
     <Vip v-if="showVip" v-model:visible="showVip" />

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { FormInst } from 'naive-ui'
 import { NModal, useMessage } from 'naive-ui'
 import { useChatStore } from '@/store'
+import { exchangeCode } from '@/api/auth'
 
 const props = defineProps<{
   visible: boolean
@@ -31,8 +32,15 @@ const submit = (e: MouseEvent) => {
   e.preventDefault()
   form.value?.validate((errors) => {
     if (!errors) {
-      message.success('提交成功')
-      emit('update:visible', false)
+      exchangeCode(model.value.code).then((res) => {
+        if (res.data) {
+          message.success('提交成功')
+        	emit('update:visible', false)
+        }
+        else {
+          message.error(res.msg)
+        }
+      })
     }
     else { message.error('提交失败') }
   })

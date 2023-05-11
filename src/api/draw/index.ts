@@ -14,7 +14,7 @@ export function taskCall(data: any) {
   })
 }
 
-export function getTaskInfo(id) {
+export function getTaskInfo(id: string) {
   return get({
     url: `/task/${id}/fetch`,
   })

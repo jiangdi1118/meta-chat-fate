@@ -4,12 +4,12 @@ import { computed, ref, watch } from 'vue'
 import { NButton, NLayoutSider } from 'naive-ui'
 
 import List from './List.vue'
-import { useAppStore, useChatStore } from '@/store'
+import { useAppStore, useDrawStore } from '@/store'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { Exchange, PromptStore } from '@/components/common'
 
 const appStore = useAppStore()
-const chatStore = useChatStore()
+const chatStore = useDrawStore()
 
 const { isMobile } = useBasicLayout()
 const show = ref(false)
@@ -17,7 +17,7 @@ const showExchange = ref(false)
 const collapsed = computed(() => appStore.siderCollapsed)
 
 function handleAdd() {
-  chatStore.addHistory({ title: '新的聊天', uuid: Date.now(), isEdit: false })
+  chatStore.addHistory({ title: '新建绘图', uuid: Date.now(), isEdit: false })
   if (isMobile.value)
     appStore.setSiderCollapsed(true)
 }
@@ -90,7 +90,7 @@ watch(
       <main class="flex flex-col flex-1 min-h-0">
         <div class="p-4">
           <NButton dashed block @click="handleAdd">
-            {{ $t('chat.newChatButton') }}
+            {{ $t('chat.newDrawButton') }}
           </NButton>
         </div>
         <div class="flex-1 min-h-0 pb-4 overflow-hidden">

@@ -182,7 +182,7 @@ const handleImg = (imgParam: string) => {
       inversion: false,
       error: false,
       conversationOptions: null,
-      requestOptions: { prompt: '', options: { ...options } },
+      requestOptions: { prompt: imgParam, options: { ...options } },
     }
     addChat(+uuid, params)
     scrollToBottom()

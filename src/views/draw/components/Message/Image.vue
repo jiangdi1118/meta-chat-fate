@@ -100,7 +100,7 @@ function highlightBlock(str: string, lang?: string) {
 }
 
 const handleImg = (item) => {
-  mittService.emit('sendImg', props.taskId + item.value)
+  mittService.emit('sendImg', `${props.taskId} ${item.value}`)
 }
 
 defineExpose({ textRef })
@@ -115,7 +115,7 @@ defineExpose({ textRef })
     </div>
     <div>
       <template v-for="(item, index) in btnList" :key="item.value">
-        <n-button class="btn" strong secondary :type="index > 3 ? 'info' : 'primary'" @click="handleImg(item)">
+        <n-button class="btn" strong secondary :type="index > 3 ? 'info' : 'primary'" @click.stop="handleImg(item)">
           {{ item.name }}
         </n-button>
         <template v-if="index === 3">

@@ -1,7 +1,8 @@
 <script setup lang='ts'>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { NDropdown } from 'naive-ui'
 import AvatarComponent from './Avatar.vue'
+import ImageComponent from './Image.vue'
 import TextComponent from './Text.vue'
 import { SvgIcon } from '@/components/common'
 import { copyText } from '@/utils/format'
@@ -14,6 +15,8 @@ import { useSpeechStore } from '@/store/modules/speech'
 interface Props {
   dateTime?: string
   text?: string
+  img?: string
+  taskId?: string
   inversion?: boolean
   error?: boolean
   loading?: boolean
@@ -86,6 +89,8 @@ function handleRegenerate() {
 const handleLoadingState = (isLoading: boolean) => {
   showLoading.value = isLoading
 }
+onMounted(() => {
+})
 </script>
 
 <template>
@@ -104,11 +109,23 @@ const handleLoadingState = (isLoading: boolean) => {
       <p class="text-xs text-[#b4bbc4]" :class="[inversion ? 'text-right' : 'text-left']">
         {{ dateTime }}
       </p>
+
       <div
         class="flex items-end gap-1 mt-2"
         :class="[inversion ? 'flex-row-reverse' : 'flex-row']"
       >
+        <ImageComponent
+          v-if="img"
+          ref="imgRef"
+          :inversion="inversion"
+          :error="error"
+          :img="img"
+          :task-id="taskId"
+          :loading="loading"
+          :as-raw-text="asRawText"
+        />
         <TextComponent
+          v-if="text"
           ref="textRef"
           :inversion="inversion"
           :error="error"

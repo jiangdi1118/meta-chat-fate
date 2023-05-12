@@ -11,7 +11,7 @@ const router = useRouter()
 const appStore = useAppStore()
 const chatStore = useDrawStore()
 // const authStore = useAuthStore()
-router.replace({ name: 'Draw', params: { uuid: chatStore.active } })
+router.replace({ name: 'Draw', params: { uuid: chatStore.active || '' } })
 
 const { isMobile } = useBasicLayout()
 const collapsed = computed(() => appStore.siderCollapsed)

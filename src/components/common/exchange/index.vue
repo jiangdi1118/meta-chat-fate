@@ -2,8 +2,9 @@
 import { computed, ref } from 'vue'
 import type { FormInst } from 'naive-ui'
 import { NModal, useMessage } from 'naive-ui'
-import { useChatStore } from '@/store'
+import { useChatStore, useDrawStore } from '@/store'
 import { exchangeCode } from '@/api/auth'
+import { checkChat } from '@/api/user'
 
 const props = defineProps<{
   visible: boolean
@@ -15,6 +16,7 @@ const emit = defineEmits<{
 
 const message = useMessage()
 const chatStore = useChatStore()
+const drawStore = useDrawStore()
 
 const form = ref<FormInst | null>(null)
 const model = ref({
@@ -34,7 +36,10 @@ const submit = (e: MouseEvent) => {
     if (!errors) {
       exchangeCode(model.value.code).then((res) => {
         if (res.data) {
-          message.success('提交成功')
+          message.success('兑换成功')
+          checkChat().then((resp) => {
+            location.hash.includes('chat') ? chatStore.updateRemainingMessages() : drawStore.updateRemainingMessages()
+          })
         	emit('update:visible', false)
         }
         else {

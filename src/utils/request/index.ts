@@ -28,10 +28,7 @@ function http<T = any>(
 ) {
   const successHandler = (res: AxiosResponse<Response<T>>) => {
     const authStore = useAuthStore()
-
-    if (res.data.status === 'Success' || typeof res.data === 'string' || res?.data?.code !== 401)
-      return res.data
-
+    // 未登录
     if (res.data.status === 'Unauthorized' || res?.data?.code === 401) {
       authStore.removeToken()
       window.$dialog.warning({
@@ -48,10 +45,29 @@ function http<T = any>(
         },
       })
     }
-    // debugger
-    // window.location.reload()
+    else if (res?.data?.code === 1002013003) {
+    // 账户余额不足
+      window.$dialog.warning({
+        title: '提示',
+        content: '您账户余额不足，是否进行充值？',
+        positiveText: '是',
+        negativeText: '否',
+        onPositiveClick: () => {
+          // window.$message.success('确定')
+        },
+        onNegativeClick: () => {
+          // message.error('不确定')
+        },
+      })
+    }
+    else if (res.data.status === 'Success' || res.data.data || res?.data?.code !== 401)
+    // 成功返回
+    { return res.data }
 
-    return Promise.reject(res.data)
+    else {
+      window.$message.error(res?.data.msg)
+      return Promise.reject(res.data)
+    }
   }
 
   const failHandler = (error: Response<Error>) => {

@@ -19,7 +19,8 @@ import VoiceInput from '@/components/voice-input/index.vue'
 import AutoSpeak from '@/components/voice-output/auto-speak.vue'
 import { useSpeechStore } from '@/store/modules/speech'
 import { checkChat } from '@/api/user'
-import { getTaskInfo, submit } from '@/api/draw'
+import { getTaskInfo, subImg, submit } from '@/api/draw'
+import mittService from '@/utils/mitt/mitt'
 
 let controller = new AbortController()
 
@@ -45,7 +46,7 @@ const conversationList = computed(() => dataSources.value.filter(item => (!item.
 const prompt = ref<string>('')
 const loading = ref<boolean>(false)
 const inputRef = ref<Ref | null>(null)
-let timer = null
+let timer: any = null
 
 // 添加PromptStore
 const promptStore = usePromptStore()
@@ -112,14 +113,24 @@ function contextualAssemblyData() {
 }
 
 // 查询绘图结果
-const queryTaskInfo = (res) => {
+const queryTaskInfo = (res, params) => {
+  timer && clearInterval(timer)
   timer = setInterval(() => {
     getTaskInfo(res.result).then((resp) => {
       if (resp.status === 'SUCCESS') {
+        clearInterval(timer)
+        updateChat(
+          +uuid,
+          dataSources.value.length - 1,
+          Object.assign(params, { img: resp.imageUrl, taskId: res.result }),
+        )
+        console.log(dataSources.value)
+        scrollToBottomIfAtBottom()
       }
       else if (resp.status === 'IN_PROGRESS') {
       }
       else if (resp.status === 'FAILURE') {
+        clearInterval(timer)
         // 异常发生时，更新对话框内容并输出异常消息
         updateChat(
           +uuid,
@@ -137,59 +148,134 @@ const queryTaskInfo = (res) => {
         scrollToBottomIfAtBottom()
       }
     })
-  }, 1000)
+  }, 2000)
+}
+
+// 图片放大或相似处理
+const handleImg = (imgParam: string) => {
+  // 提问时首先判断是否具有权限
+  checkChat().then((data) => {
+    chatStore.updateRemainingMessages()
+    if (loading.value)
+      return
+    // 	addChat(
+    //   +uuid,
+    //   {
+    //     dateTime: new Date().toLocaleString(),
+    //     text: message,
+    //     inversion: true,
+    //     error: false,
+    //     conversationOptions: null,
+    //     requestOptions: { prompt: message, options: null },
+    //   },
+    // )
+    // scrollToBottom()
+    loading.value = true
+    let options: Chat.ConversationRequest = {}
+    const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
+    if (lastContext && usingContext.value)
+      options = { ...lastContext }
+    const params = {
+      dateTime: new Date().toLocaleString(),
+      text: '',
+      loading: true,
+      inversion: false,
+      error: false,
+      conversationOptions: null,
+      requestOptions: { prompt: '', options: { ...options } },
+    }
+    addChat(+uuid, params)
+    scrollToBottom()
+    // 提交数据
+    subImg({
+      content: imgParam,
+    }).then((res) => {
+      queryTaskInfo(res, params)
+    }).catch((error: any) => {
+      const errorMessage = error?.message ?? t('common.wrong')
+      if (error.message === 'canceled') {
+        updateChatSome(
+          +uuid,
+          dataSources.value.length - 1,
+          {
+            loading: false,
+          },
+        )
+        scrollToBottomIfAtBottom()
+        return
+      }
+      const currentChat = getChatByUuidAndIndex(+uuid, dataSources.value.length - 1)
+      if (currentChat?.text && currentChat.text !== '') {
+        updateChatSome(
+          +uuid,
+          dataSources.value.length - 1,
+          {
+            text: `${currentChat.text}\n[${errorMessage}]`,
+            error: false,
+            loading: false,
+          },
+        )
+        return
+      }
+      updateChat(
+        +uuid,
+        dataSources.value.length - 1,
+        {
+          dateTime: new Date().toLocaleString(),
+          text: errorMessage,
+          inversion: false,
+          error: true,
+          loading: false,
+          conversationOptions: null,
+          requestOptions: { prompt: message, options: { ...options } },
+        },
+      )
+      scrollToBottomIfAtBottom()
+    }).finally(() => {
+      loading.value = false
+    })
+  })
 }
 
 async function onConversation() {
   // 提问时首先判断是否具有权限
   const response = await checkChat()
-
-  if (!response.data || response.code !== 0) {
-    if (typeof response.msg === 'string')
-      ms.error(response.msg, { duration: 3000 })
-    else
-      ms.error('An error occurred.', { duration: 3000 })
-    return
-  }
-  // 更新 remainingMessages
-  await chatStore.updateRemainingMessages()
-
-  const message = prompt.value
-
-  if (loading.value)
-    return
-
-  if (!message || message.trim() === '')
-    return
-
-  controller = new AbortController()
-
-  addChat(
-    +uuid,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: message,
-      inversion: true,
-      error: false,
-      conversationOptions: null,
-      requestOptions: { prompt: message, options: null },
-    },
-  )
-  scrollToBottom()
-
-  loading.value = true
-  prompt.value = ''
-
-  let options: Chat.ConversationRequest = {}
-  const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
-
-  if (lastContext && usingContext.value)
-    options = { ...lastContext }
-  const myProp = contextualAssemblyData()
-
-  addChat(
-    +uuid,
-    {
+  // if (!response.data || response.code !== 0) {
+  //   if (typeof response.msg === 'string')
+  //     ms.error(response.msg, { duration: 3000 })
+  //   else
+  //     ms.error('An error occurred.', { duration: 3000 })
+  //   return
+  // }
+  if (response && response.data) {
+    // 更新 remainingMessages
+    await chatStore.updateRemainingMessages()
+    const message = prompt.value
+    if (loading.value)
+      return
+    if (!message || message.trim() === '')
+      return
+    controller = new AbortController()
+    addChat(
+      +uuid,
+      {
+        dateTime: new Date().toLocaleString(),
+        text: message,
+        inversion: true,
+        error: false,
+        conversationOptions: null,
+        requestOptions: { prompt: message, options: null },
+      },
+    )
+    scrollToBottom()
+    loading.value = true
+    prompt.value = ''
+    let options: Chat.ConversationRequest = {}
+    const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
+    if (lastContext && usingContext.value)
+      options = { ...lastContext }
+    const myProp = contextualAssemblyData()
+    const params = {
       dateTime: new Date().toLocaleString(),
       text: '',
       loading: true,
@@ -197,101 +283,93 @@ async function onConversation() {
       error: false,
       conversationOptions: null,
       requestOptions: { prompt: message, options: { ...options } },
-    },
-  )
-  scrollToBottom()
-  // 提交数据
-  submit({
-    action: 'IMAGINE',
-    prompt: message,
-    state: 'test:23',
-  }).then((res) => {
-    queryTaskInfo(res)
-  }).catch((error: any) => {
-    const errorMessage = error?.message ?? t('common.wrong')
-    if (error.message === 'canceled') {
-      updateChatSome(
+    }
+    addChat(+uuid, params)
+    scrollToBottom()
+    // 提交数据
+    submit({
+      action: 'IMAGINE',
+      prompt: message,
+    }).then((res) => {
+      queryTaskInfo(res, params)
+    }).catch((error: any) => {
+      const errorMessage = error?.message ?? t('common.wrong')
+      if (error.message === 'canceled') {
+        updateChatSome(
+          +uuid,
+          dataSources.value.length - 1,
+          {
+            loading: false,
+          },
+        )
+        scrollToBottomIfAtBottom()
+        return
+      }
+      const currentChat = getChatByUuidAndIndex(+uuid, dataSources.value.length - 1)
+      if (currentChat?.text && currentChat.text !== '') {
+        updateChatSome(
+          +uuid,
+          dataSources.value.length - 1,
+          {
+            text: `${currentChat.text}\n[${errorMessage}]`,
+            error: false,
+            loading: false,
+          },
+        )
+        return
+      }
+      updateChat(
         +uuid,
         dataSources.value.length - 1,
         {
+          dateTime: new Date().toLocaleString(),
+          text: errorMessage,
+          inversion: false,
+          error: true,
           loading: false,
+          conversationOptions: null,
+          requestOptions: { prompt: message, options: { ...options } },
         },
       )
       scrollToBottomIfAtBottom()
-      return
-    }
-    const currentChat = getChatByUuidAndIndex(+uuid, dataSources.value.length - 1)
-    if (currentChat?.text && currentChat.text !== '') {
-      updateChatSome(
-        +uuid,
-        dataSources.value.length - 1,
-        {
-          text: `${currentChat.text}\n[${errorMessage}]`,
-          error: false,
-          loading: false,
-        },
-      )
-      return
-    }
-    updateChat(
-      +uuid,
-      dataSources.value.length - 1,
-      {
-        dateTime: new Date().toLocaleString(),
-        text: errorMessage,
-        inversion: false,
-        error: true,
-        loading: false,
-        conversationOptions: null,
-        requestOptions: { prompt: message, options: { ...options } },
-      },
-    )
-    scrollToBottomIfAtBottom()
-  }).finally(() => {
-    loading.value = false
-  })
+    }).finally(() => {
+      loading.value = false
+    })
+  }
 }
 
 async function onRegenerate(index: number) {
   if (loading.value)
     return
-
   controller = new AbortController()
-
   const { requestOptions } = dataSources.value[index]
-
   const message = requestOptions?.prompt ?? ''
-
   let options: Chat.ConversationRequest = {}
-
   if (requestOptions.options)
     options = { ...requestOptions.options }
   let myProp = contextualAssemblyData()
   myProp = myProp.slice(0, index + 1)
-
   loading.value = true
-
+  const params = {
+    dateTime: new Date().toLocaleString(),
+    text: '',
+    inversion: false,
+    error: false,
+    loading: true,
+    conversationOptions: null,
+    requestOptions: { prompt: message, ...options },
+  }
   updateChat(
     +uuid,
     index,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: '',
-      inversion: false,
-      error: false,
-      loading: true,
-      conversationOptions: null,
-      requestOptions: { prompt: message, ...options },
-    },
+    params,
   )
-
   // 提交数据
   submit({
     action: 'IMAGINE',
     prompt: message,
-    state: 'test:23',
   }).then((res) => {
-    queryTaskInfo(res)
+    queryTaskInfo(res, params)
   }).catch((error) => {
     if (error.message === 'canceled') {
       updateChatSome(
@@ -465,11 +543,17 @@ onMounted(() => {
   scrollToBottom()
   if (inputRef.value && !isMobile.value)
     inputRef.value?.focus()
+
+  mittService.on('sendImg', (data) => {
+    handleImg(data)
+  })
 })
 
 onUnmounted(() => {
   if (loading.value)
     controller.abort()
+
+  timer && clearInterval(timer)
 })
 </script>
 
@@ -513,6 +597,8 @@ onUnmounted(() => {
                 :key="index"
                 :date-time="item.dateTime"
                 :text="item.text"
+                :img="item.img"
+                :task-id="item.taskId"
                 :inversion="item.inversion"
                 :error="item.error"
                 :loading="item.loading"

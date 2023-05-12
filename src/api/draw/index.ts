@@ -7,6 +7,13 @@ export function submit(data: any) {
   })
 }
 
+export function subImg(data: any) {
+  return post({
+    url: '/trigger/submit-uv',
+    data,
+  })
+}
+
 export function taskCall(data: any) {
   return post({
     url: '/task/callback',

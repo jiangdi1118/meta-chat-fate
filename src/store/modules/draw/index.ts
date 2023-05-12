@@ -3,7 +3,7 @@ import { getLocalState, setLocalState } from './helper'
 import { router } from '@/router'
 import { getUserChatInfo } from '@/api/user'
 
-export const useDrawStore = defineStore('chat-store', {
+export const useDrawStore = defineStore('draw-store', {
   state: (): Chat.ChatState => ({
     ...getLocalState(),
     remainingMessages: 0, // 添加 remainingMessages 属性

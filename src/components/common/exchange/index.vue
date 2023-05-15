@@ -43,7 +43,7 @@ const submit = (e: MouseEvent) => {
         	emit('update:visible', false)
         }
         else {
-          message.error(res.msg)
+          message.error(res.msg || '提交失败')
         }
       })
     }

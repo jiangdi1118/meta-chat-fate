@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick } from 'vue'
 import { useDialog } from 'naive-ui'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useAppStore, useChatStore } from '@/store'
@@ -19,8 +19,8 @@ interface Emit {
 const { loading } = defineProps<Props>()
 
 const emit = defineEmits<Emit>()
-const showSetting = ref(false)
-const showVip = ref(false)
+// const showSetting = ref(false)
+// const showVip = ref(false)
 
 const appStore = useAppStore()
 const chatStore = useChatStore()
@@ -55,9 +55,9 @@ function handleClear() {
     onPositiveClick: () => emit('clean'),
   })
 }
-const isPremiumMember = computed(() => {
-  return chatStore.vipType === '1'
-})
+// const isPremiumMember = computed(() => {
+//   return chatStore.vipType === '1'
+// })
 </script>
 
 <template>

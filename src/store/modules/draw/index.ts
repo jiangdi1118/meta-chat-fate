@@ -9,6 +9,8 @@ export const useDrawStore = defineStore('draw-store', {
     remainingMessages: 0, // 添加 remainingMessages 属性
     vipType: '', // 添加 vipType 属性
     vipExpires: null, // 添加 vipExpires 属性
+    img: '',
+    taskId: '',
   }),
 
   getters: {

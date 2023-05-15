@@ -5,6 +5,10 @@ const LOCAL_NAME = 'chatStorage'
 export function defaultState(): Chat.ChatState {
   const uuid = 1002
   return {
+    img: '',
+    taskId: '',
+    vipExpires: undefined,
+    vipType: '',
     active: uuid,
     usingContext: true,
     history: [{ uuid, title: 'New Chat', isEdit: false }],

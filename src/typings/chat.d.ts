@@ -3,6 +3,8 @@ declare namespace Chat {
 	interface Chat {
 		dateTime: string
 		text: string
+		img: string
+		taskId: string
 		inversion?: boolean
 		error?: boolean
 		loading?: boolean
@@ -24,6 +26,8 @@ declare namespace Chat {
 		chat: { uuid: number; data: Chat[] }[]
 		vipType?: string // 添加 vipType 属性
 		vipExpires?: LocalDateTime | null // 添加 vipExpires 属性
+		img: string
+		taskId: string
 	}
 
 	interface ConversationRequest {

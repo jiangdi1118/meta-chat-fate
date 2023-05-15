@@ -62,8 +62,8 @@ onMounted(() => {
       <template #prefix>
         <img class="logo" :src="websiteConfig.logo" alt="">
       </template>
-      <template v-for="(item, index) in navList" :key="index">
-        <n-tab-pane :name="item.name" :tab="item.name" />
+      <template v-for="(innerItem) in navList" >
+        <n-tab-pane :name="innerItem.name" :tab="innerItem.name" />
       </template>
       <template #suffix>
         <n-button v-if="!userInfo.mobile" type="info" @click="login">

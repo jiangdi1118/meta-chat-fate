@@ -99,7 +99,7 @@ function highlightBlock(str: string, lang?: string) {
   return `<pre class="code-block-wrapper"><div class="code-block-header"><span class="code-block-header__lang">${lang}</span><span class="code-block-header__copy">${t('chat.copyCode')}</span></div><code class="hljs code-block-body ${lang}">${str}</code></pre>`
 }
 
-const handleImg = (item) => {
+const handleImg = (item: { value: any }) => {
   mittService.emit('sendImg', `${props.taskId} ${item.value}`)
 }
 

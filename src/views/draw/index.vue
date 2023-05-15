@@ -113,7 +113,7 @@ function contextualAssemblyData() {
 }
 
 // 查询绘图结果
-const queryTaskInfo = (res, params) => {
+const queryTaskInfo = (res: any, params: any) => {
   timer && clearInterval(timer)
   timer = setInterval(() => {
     getTaskInfo(res.result).then((resp) => {
@@ -124,7 +124,7 @@ const queryTaskInfo = (res, params) => {
           dataSources.value.length - 1,
           Object.assign(params, { img: resp.imageUrl, taskId: res.result }),
         )
-        console.log(dataSources.value)
+        // console.log(dataSources.value)
         scrollToBottomIfAtBottom()
       }
       else if (resp.status === 'IN_PROGRESS') {
@@ -135,15 +135,17 @@ const queryTaskInfo = (res, params) => {
         updateChat(
           +uuid,
           dataSources.value.length - 1,
-          {
-            dateTime: new Date().toLocaleString(),
-            text: `错误：${resp.message || '发生了未知错误'}`,
-            inversion: false,
-            error: true,
-            loading: false,
-            conversationOptions: {},
-            requestOptions: { prompt: prompt.value, options: null },
-          },
+					{
+						dateTime: new Date().toLocaleString(),
+						text: `错误：${resp.message || '发生了未知错误'}`,
+						inversion: false,
+						error: true,
+						loading: false,
+						conversationOptions: {},
+						requestOptions: {prompt: prompt.value, options: null},
+						img: '',
+						taskId: ''
+					},
         )
         scrollToBottomIfAtBottom()
       }
@@ -178,6 +180,8 @@ const handleImg = (imgParam: string) => {
     const params = {
       dateTime: new Date().toLocaleString(),
       text: '',
+      taskId: '',
+      img: '',
       loading: true,
       inversion: false,
       error: false,
@@ -220,15 +224,17 @@ const handleImg = (imgParam: string) => {
       updateChat(
         +uuid,
         dataSources.value.length - 1,
-        {
-          dateTime: new Date().toLocaleString(),
-          text: errorMessage,
-          inversion: false,
-          error: true,
-          loading: false,
-          conversationOptions: null,
-          requestOptions: { prompt: message, options: { ...options } },
-        },
+				{
+					dateTime: new Date().toLocaleString(),
+					text: errorMessage,
+					inversion: false,
+					error: true,
+					loading: false,
+					conversationOptions: null,
+					requestOptions: {prompt: imgParam, options: {...options}},
+					img: '',
+					taskId: ''
+				},
       )
       scrollToBottomIfAtBottom()
     }).finally(() => {
@@ -258,14 +264,16 @@ async function onConversation() {
     controller = new AbortController()
     addChat(
       +uuid,
-      {
-        dateTime: new Date().toLocaleString(),
-        text: message,
-        inversion: true,
-        error: false,
-        conversationOptions: null,
-        requestOptions: { prompt: message, options: null },
-      },
+			{
+				dateTime: new Date().toLocaleString(),
+				text: message,
+				inversion: true,
+				error: false,
+				conversationOptions: null,
+				requestOptions: {prompt: message, options: null},
+				img: '',
+				taskId: ''
+			},
     )
     scrollToBottom()
     loading.value = true
@@ -274,10 +282,12 @@ async function onConversation() {
     const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
     if (lastContext && usingContext.value)
       options = { ...lastContext }
-    const myProp = contextualAssemblyData()
+    // const myProp = contextualAssemblyData()
     const params = {
       dateTime: new Date().toLocaleString(),
       text: '',
+      taskId: '',
+      img: '',
       loading: true,
       inversion: false,
       error: false,
@@ -324,6 +334,8 @@ async function onConversation() {
         {
           dateTime: new Date().toLocaleString(),
           text: errorMessage,
+          taskId: '',
+          img: '',
           inversion: false,
           error: true,
           loading: false,
@@ -353,6 +365,8 @@ async function onRegenerate(index: number) {
   const params = {
     dateTime: new Date().toLocaleString(),
     text: '',
+    taskId: '',
+    img: '',
     inversion: false,
     error: false,
     loading: true,
@@ -385,15 +399,17 @@ async function onRegenerate(index: number) {
     updateChat(
       +uuid,
       index,
-      {
-        dateTime: new Date().toLocaleString(),
-        text: errorMessage,
-        inversion: false,
-        error: true,
-        loading: false,
-        conversationOptions: null,
-        requestOptions: { prompt: message, ...options },
-      },
+			{
+				dateTime: new Date().toLocaleString(),
+				text: errorMessage,
+				inversion: false,
+				error: true,
+				loading: false,
+				conversationOptions: null,
+				requestOptions: {prompt: message, ...options},
+				img: '',
+				taskId: ''
+			},
     )
   }).finally(() => {
     loading.value = false
@@ -546,7 +562,7 @@ onMounted(() => {
     inputRef.value?.focus()
 
   mittService.on('sendImg', (data) => {
-    handleImg(data)
+    handleImg(<string>data)
   })
 })
 
@@ -580,9 +596,9 @@ onUnmounted(() => {
               <SvgIcon icon="ri:refresh" />
             </div>
             <div class="hot-content">
-              <template v-for="(item, index) in hotList" :key="index">
-                <div class="hot-item" @click="handleHotWord(item)">
-                  <span>{{ item }}</span>
+              <template v-for="(innerItem) in hotList" >
+                <div class="hot-item" @click="handleHotWord(innerItem)">
+                  <span>{{ innerItem }}</span>
                 </div>
               </template>
             </div>

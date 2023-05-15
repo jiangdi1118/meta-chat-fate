@@ -136,14 +136,16 @@ async function onConversation() {
 
   addChat(
     +uuid,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: message,
-      inversion: true,
-      error: false,
-      conversationOptions: null,
-      requestOptions: { prompt: message, options: null },
-    },
+		{
+			dateTime: new Date().toLocaleString(),
+			text: message,
+			inversion: true,
+			error: false,
+			conversationOptions: null,
+			requestOptions: {prompt: message, options: null},
+			img: '',
+			taskId: ''
+		},
   )
   scrollToBottom()
 
@@ -159,15 +161,17 @@ async function onConversation() {
 
   addChat(
     +uuid,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: '',
-      loading: true,
-      inversion: false,
-      error: false,
-      conversationOptions: null,
-      requestOptions: { prompt: message, options: { ...options } },
-    },
+		{
+			dateTime: new Date().toLocaleString(),
+			text: '',
+			loading: true,
+			inversion: false,
+			error: false,
+			conversationOptions: null,
+			requestOptions: {prompt: message, options: {...options}},
+			img: '',
+			taskId: ''
+		},
   )
   scrollToBottom()
 
@@ -189,15 +193,17 @@ async function onConversation() {
             updateChat(
               +uuid,
               dataSources.value.length - 1,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: lastText,
-                inversion: false,
-                error: false,
-                loading: false,
-                conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
-                requestOptions: { prompt: message, options: { ...options } },
-              },
+							{
+								dateTime: new Date().toLocaleString(),
+								text: lastText,
+								inversion: false,
+								error: false,
+								loading: false,
+								conversationOptions: {conversationId: data.conversationId, parentMessageId: data.id},
+								requestOptions: {prompt: message, options: {...options}},
+								img: '',
+								taskId: ''
+							},
             )
 
             scrollToBottomIfAtBottom()
@@ -207,15 +213,17 @@ async function onConversation() {
             updateChat(
               +uuid,
               dataSources.value.length - 1,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: `错误：${error.message || '发生了未知错误'}`,
-                inversion: false,
-                error: true,
-                loading: false,
-                conversationOptions: {},
-                requestOptions: { prompt: message, options: { ...options } },
-              },
+							{
+								dateTime: new Date().toLocaleString(),
+								text: `错误：${error.message || '发生了未知错误'}`,
+								inversion: false,
+								error: true,
+								loading: false,
+								conversationOptions: {},
+								requestOptions: {prompt: message, options: {...options}},
+								img: '',
+								taskId: ''
+							},
             )
             scrollToBottomIfAtBottom()
             console.error('Error occurred during fetchChatAPIOnce:', error)
@@ -260,14 +268,16 @@ async function onConversation() {
       +uuid,
       dataSources.value.length - 1,
       {
-        dateTime: new Date().toLocaleString(),
-        text: errorMessage,
-        inversion: false,
-        error: true,
-        loading: false,
-        conversationOptions: null,
-        requestOptions: { prompt: message, options: { ...options } },
-      },
+				dateTime: new Date().toLocaleString(),
+				text: errorMessage,
+				inversion: false,
+				error: true,
+				loading: false,
+				conversationOptions: null,
+				requestOptions: {prompt: message, options: {...options}},
+				img: '',
+				taskId: ''
+			},
     )
     scrollToBottomIfAtBottom()
   }
@@ -298,15 +308,17 @@ async function onRegenerate(index: number) {
   updateChat(
     +uuid,
     index,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: '',
-      inversion: false,
-      error: false,
-      loading: true,
-      conversationOptions: null,
-      requestOptions: { prompt: message, ...options },
-    },
+		{
+			dateTime: new Date().toLocaleString(),
+			text: '',
+			inversion: false,
+			error: false,
+			loading: true,
+			conversationOptions: null,
+			requestOptions: {prompt: message, ...options},
+			img: '',
+			taskId: ''
+		},
   )
 
   try {
@@ -330,6 +342,8 @@ async function onRegenerate(index: number) {
               {
                 dateTime: new Date().toLocaleString(),
                 text: lastText,
+                taskId: '',
+                img: '',
                 inversion: false,
                 error: false,
                 loading: false,
@@ -364,15 +378,17 @@ async function onRegenerate(index: number) {
     updateChat(
       +uuid,
       index,
-      {
-        dateTime: new Date().toLocaleString(),
-        text: errorMessage,
-        inversion: false,
-        error: true,
-        loading: false,
-        conversationOptions: null,
-        requestOptions: { prompt: message, ...options },
-      },
+			{
+				dateTime: new Date().toLocaleString(),
+				text: errorMessage,
+				inversion: false,
+				error: true,
+				loading: false,
+				conversationOptions: null,
+				requestOptions: {prompt: message, ...options},
+				img: '',
+				taskId: ''
+			},
     )
   }
   finally {
@@ -554,9 +570,9 @@ onUnmounted(() => {
               <SvgIcon icon="ri:refresh" />
             </div>
             <div class="hot-content">
-              <template v-for="(item, index) in hotList" :key="index">
-                <div class="hot-item" @click="handleHotWord(item)">
-                  <span>{{ item }}</span>
+              <template v-for="(innerItem) in hotList">
+                <div class="hot-item" @click="handleHotWord(innerItem)">
+                  <span>{{ innerItem }}</span>
                 </div>
               </template>
             </div>

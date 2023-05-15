@@ -15,6 +15,7 @@ export interface HttpOption {
 }
 
 export interface Response<T = any> {
+  imageUrl: any
   data: T
   message: string | null
   status: string
@@ -31,6 +32,7 @@ function http<T = any>(
     // 未登录
     if (res.data.status === 'Unauthorized' || res?.data?.code === 401) {
       authStore.removeToken()
+      // @ts-expect-error
       window.$dialog.warning({
         title: '提示',
         content: '您尚未登录，是否前往登录？',
@@ -47,6 +49,7 @@ function http<T = any>(
     }
     else if (res?.data?.code === 1002013003) {
     // 账户余额不足
+      // @ts-expect-error
       window.$dialog.warning({
         title: '提示',
         content: '您账户余额不足，是否进行充值？',
@@ -62,9 +65,13 @@ function http<T = any>(
     }
     else if (res.data.status === 'Success' || res.data.data || res?.data?.code !== 401)
     // 成功返回
-    { return res.data }
+    // eslint-disable-next-line @typescript-eslint/brace-style
+    {
+      return res.data
+    }
 
     else {
+      // @ts-expect-error
       window.$message.error(res?.data.msg)
       return Promise.reject(res.data)
     }
@@ -87,17 +94,17 @@ function http<T = any>(
 }
 
 export function get<T = any>(
-  { url, data, method = 'GET', onDownloadProgress, signal, beforeRequest, afterRequest }: HttpOption,
+	{ url, data, method = 'GET', onDownloadProgress, signal, beforeRequest, afterRequest }: HttpOption,
 ): Promise<Response<T>> {
-  return http<T>({
-    url,
-    method,
-    data,
-    onDownloadProgress,
-    signal,
-    beforeRequest,
-    afterRequest,
-  })
+	return http<T>({
+		url,
+		method,
+		data,
+		onDownloadProgress,
+		signal,
+		beforeRequest,
+		afterRequest,
+	}) as Promise<Response<T>>;
 }
 
 export function post<T = any>(
@@ -112,7 +119,7 @@ export function post<T = any>(
     signal,
     beforeRequest,
     afterRequest,
-  })
+  }) as Promise<Response<T>>;
 }
 
 export default post

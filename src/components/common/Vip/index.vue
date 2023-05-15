@@ -52,8 +52,8 @@ async function fetchSpuInfo() {
   }
 }
 
-function generateMerchantOrderId(spuId: number) {
-  return `Order_${spuId}_${Date.now()}`
+function generateMerchantOrderId(tenantId: number) {
+  return `Order_${tenantId}_${Date.now()}`
 }
 
 async function purchase(spuId: number, paymentMethod: string) {
@@ -63,6 +63,7 @@ async function purchase(spuId: number, paymentMethod: string) {
   }
 
   const appId = import.meta.env.VITE_GLOB_APP_ID
+  const tenantId = import.meta.env.VITE_GLOB_TENANT_ID
   selectedPaymentMethod.value = paymentMethod
 
   // 创建订单
@@ -77,7 +78,7 @@ async function purchase(spuId: number, paymentMethod: string) {
   }
   selectedSpuName.value = spu.name
 
-  const merchantOrderId = generateMerchantOrderId(spuId)
+  const merchantOrderId = generateMerchantOrderId(tenantId)
 
   const orderCreateResult = await orderCreate({
     appId,

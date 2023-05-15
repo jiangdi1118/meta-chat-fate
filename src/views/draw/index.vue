@@ -541,7 +541,8 @@ const handleHotWord = (item: string) => {
 
 onMounted(() => {
   scrollToBottom()
-  if (inputRef.value && !isMobile.value)
+  chatStore.updateRemainingMessages()
+	if (inputRef.value && !isMobile.value)
     inputRef.value?.focus()
 
   mittService.on('sendImg', (data) => {

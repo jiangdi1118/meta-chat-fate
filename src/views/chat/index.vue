@@ -520,7 +520,8 @@ const handleHotWord = (item: string) => {
 }
 
 onMounted(() => {
-  scrollToBottom()
+	chatStore.updateRemainingMessages()
+	scrollToBottom()
   if (inputRef.value && !isMobile.value)
     inputRef.value?.focus()
 })

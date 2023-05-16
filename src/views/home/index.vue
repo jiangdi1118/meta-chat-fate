@@ -29,10 +29,10 @@ const navList = reactive([
   //   name: '写作',
   //   linkUrl: 'write',
   // },
-  // {
-  //   name: '绘图',
-  //   linkUrl: 'draw',
-  // },
+  {
+    name: '绘图',
+    linkUrl: 'draw',
+  },
 ])
 const change = (val: any) => {
   curTab.value = val
